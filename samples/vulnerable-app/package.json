@@ -1,0 +1,16 @@
+{
+  "name": "sample-vulnerable-app",
+  "version": "1.0.0",
+  "description": "Deliberately vulnerable test application for Voom Nexus demonstration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axios": "0.20.0",
+    "event-stream": "3.3.6",
+    "express": "^4.19.2",
+    "lodash": "4.17.15"
+  }
+}
+

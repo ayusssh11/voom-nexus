@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { SecurityIssue, logger } from '@voom-nexus/shared';
 
 export interface FixPatch {
@@ -79,7 +80,7 @@ export class AutoFixer {
    * Applies automated fixes to target files.
    * If dryRun is true, calculates patches without modifying files on disk.
    */
-  async applyFixes(issues: SecurityIssue[], dryRun = false): Promise<FixResult> {
+  async applyFixes(issues: SecurityIssue[], dryRun = false, baseDir?: string): Promise<FixResult> {
     const patches: FixPatch[] = [];
     const fileIssuesMap = new Map<string, SecurityIssue[]>();
 
@@ -94,8 +95,9 @@ export class AutoFixer {
     let skippedCount = 0;
 
     for (const [filePath, fileIssues] of fileIssuesMap.entries()) {
+      const targetFilePath = baseDir ? resolve(baseDir, filePath) : resolve(filePath);
       try {
-        const fileContent = await readFile(filePath, 'utf-8');
+        const fileContent = await readFile(targetFilePath, 'utf-8');
         const lines = fileContent.split(/\r?\n/);
         let modified = false;
 
@@ -133,11 +135,11 @@ export class AutoFixer {
         }
 
         if (modified && !dryRun) {
-          await writeFile(filePath, lines.join('\n'), 'utf-8');
-          logger.info(`Successfully applied automated security fixes to ${filePath}`);
+          await writeFile(targetFilePath, lines.join('\n'), 'utf-8');
+          logger.info(`Successfully applied automated security fixes to ${targetFilePath}`);
         }
       } catch (err: any) {
-        logger.error(`Failed to apply fixes to ${filePath}:`, err);
+        logger.error(`Failed to apply fixes to ${targetFilePath}:`, err);
         patches.push({
           ruleId: 'REMEDIATION_ERROR',
           file: filePath,

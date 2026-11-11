@@ -52,7 +52,7 @@ export async function runScan(options: CliScanOptions = {}): Promise<number> {
   // Automated Remediation (--fix / --dry-run)
   if (options.fix) {
     const fixer = new AutoFixer();
-    const fixResult = await fixer.applyFixes(result.issues, options.dryRun);
+    const fixResult = await fixer.applyFixes(result.issues, options.dryRun, targetPath);
 
     console.log('\n====================================================');
     console.log(`  VOOM NEXUS — AUTOMATED REMEDIATION ${options.dryRun ? '(DRY-RUN)' : ''}`);
