@@ -101,3 +101,4 @@ export async function runVerify(options: VerifyOptions = {}): Promise<number> {
   console.log('✓ Verification passed! No new security regressions detected.\n');
   return 0;
 }
+

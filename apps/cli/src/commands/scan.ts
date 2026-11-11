@@ -102,3 +102,4 @@ function evaluateThreshold(result: any, threshold: Severity): boolean {
       return result.metrics.totalIssues > 0;
   }
 }
+
