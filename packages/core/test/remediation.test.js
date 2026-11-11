@@ -134,3 +134,4 @@ test('AutoFixer applies live code fixes and updates file on disk', async () => {
 
   await rm(testDir, { recursive: true, force: true });
 });
+

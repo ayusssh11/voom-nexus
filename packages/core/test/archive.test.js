@@ -97,3 +97,4 @@ test('SafeArchiveExtractor blocks archives exceeding maximum file count', () => 
     }
   );
 });
+
