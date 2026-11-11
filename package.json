@@ -14,7 +14,8 @@
     "test": "node --test packages/*/test/*.test.js apps/*/test/*.test.js",
     "clean": "rm -rf packages/*/dist apps/*/dist",
     "vibesec": "node apps/cli/dist/index.js",
-    "start:web": "node apps/web/dist/index.js"
+    "start:web": "node apps/web/dist/index.js",
+    "demo": "./scripts/demo.sh"
   },
   "keywords": [
     "security",
