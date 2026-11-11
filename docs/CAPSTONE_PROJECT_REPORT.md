@@ -143,3 +143,4 @@ Voom Nexus demonstrates that modern application security tools do not require he
 1. Integration with Tree-sitter for full-fidelity cross-file dataflow taint tracking.
 2. Direct IDE language server protocol (LSP) extension for real-time in-editor diagnostic squiggles.
 3. Distributed scanning worker fleet backed by Redis and PostgreSQL for multi-tenant SaaS environments.
+

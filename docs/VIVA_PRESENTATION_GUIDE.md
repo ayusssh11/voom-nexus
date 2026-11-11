@@ -83,3 +83,4 @@ This guide prepares you for academic evaluation, project presentations, and oral
 | **5. Show AI Guardrail Generation** | `node apps/cli/dist/index.js init ./my-demo --framework nextjs --ai all --force` | Show how `.cursorrules` and `CLAUDE.md` prevent AI coding assistants from introducing flaws. |
 | **6. Show Web Dashboard** | `node apps/web/dist/index.js` (open `http://localhost:4000/dashboard`) | Show the live Health Score, project monitoring table, and REST API. |
 | **7. Show Automated Test Suite** | `npm test` | Run all 74 unit, integration, and benchmark tests passing at 100% in ~350ms. |
+
