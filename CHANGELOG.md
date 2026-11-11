@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Core Security Engine Foundation (Phase 1)**:
+  - Streaming, asynchronous `DirectoryWalker` with `.gitignore` and `.voomsecignore` evaluation.
+  - Cycle and symlink recursion loop defense via inode tracking (`${dev}:${ino}`).
+  - File size cap guards (`maxFileSizeBytes`, default 2MB) to prevent Denial of Service on massive bundle outputs.
+  - Safe text file reader `SafeFileReader` with 8KB buffer inspection to detect binary files (presence of null bytes `\0`).
+  - Line-indexing parser adapters for JavaScript, TypeScript, Python, and Generic files.
+  - Per-file timeout protection in `ScanOrchestrator` (`config.scan.timeoutMs`).
+  - Inline rule suppression support (`// voomsec-ignore-next-line <RULE-ID>`).
+  - Unit test suites for walker, safe reader, adapters, and orchestrator (29 passing tests across packages).
 - **Project Foundation (Phase 0)**:
   - Initialized unified monorepo architecture using native npm workspaces.
   - Configured root and package-level TypeScript configurations (`tsconfig.json`).
