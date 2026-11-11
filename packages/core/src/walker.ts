@@ -175,3 +175,4 @@ export class DirectoryWalker {
     return dotIndex !== -1 ? fileName.slice(dotIndex).toLowerCase() : '';
   }
 }
+
