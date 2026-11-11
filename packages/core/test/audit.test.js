@@ -105,3 +105,4 @@ test('DependencyAuditor handles directories without manifest gracefully', async 
 
   await rm(testDir, { recursive: true, force: true });
 });
+

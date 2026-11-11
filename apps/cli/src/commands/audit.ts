@@ -112,3 +112,4 @@ function evaluateAuditThreshold(result: ScanResult, threshold: Severity): boolea
       return result.metrics.totalIssues > 0;
   }
 }
+

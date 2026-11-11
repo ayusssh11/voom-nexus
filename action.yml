@@ -48,3 +48,4 @@ runs:
           ARGS="$ARGS --audit"
         fi
         npx vibesec $ARGS
+

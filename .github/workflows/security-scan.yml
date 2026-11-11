@@ -44,3 +44,4 @@ jobs:
         with:
           sarif_file: voomsec-results.sarif
           category: voom-nexus-security
+
