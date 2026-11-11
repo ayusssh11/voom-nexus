@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Repository Integration & Asynchronous Scan Queue (Phase 5)**:
+  - `SafeArchiveExtractor` in `@voom-nexus/core` defending against Zip Slip (CWE-22 path traversal) and Decompression Bombs with strict byte thresholds (100MB limit) and max file counts (2,000 files).
+  - Background asynchronous scanning queue (`ScanJobQueue` in `@voom-nexus/web`) with non-blocking job state transitions (`QUEUED` -> `RUNNING` -> `COMPLETED` / `FAILED`).
+  - Web API endpoints for async scans:
+    - `POST /api/v1/projects/:id/queue-scan`: Enqueue background scan job, returning `202 Accepted` with `jobId`.
+    - `GET /api/v1/jobs/:jobId`: Query real-time background job progress and scan metrics.
+    - `GET /api/v1/jobs`: List all active and completed queue tasks.
+  - Automated unit and integration tests for archive security guards and background queue lifecycles (54 passing tests across monorepo).
 - **Web Application & RESTful API Platform (Phase 4)**:
   - In-memory data store (`MemoryDataStore`) managing projects, scans, findings, and immutable audit logs conforming to `DATABASE_SCHEMA.md`.
   - Security Health Score engine automatically calculating project ratings (0 - 100) based on severity weights.

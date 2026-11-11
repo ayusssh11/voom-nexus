@@ -1,6 +1,7 @@
 import { createServer, Server, IncomingMessage, ServerResponse } from 'node:http';
 import { Socket } from 'node:net';
 import { MemoryDataStore, defaultDataStore } from '../store/data-store.js';
+import { ScanJobQueue } from '../services/queue.js';
 import { handleRequest } from './router.js';
 import { logger } from '@voom-nexus/shared';
 
@@ -14,13 +15,19 @@ export interface InjectedResponse {
 export class VoomWebServer {
   private server: Server | null = null;
   private store: MemoryDataStore;
+  private queue: ScanJobQueue;
 
-  constructor(store: MemoryDataStore = defaultDataStore) {
+  constructor(store: MemoryDataStore = defaultDataStore, queue?: ScanJobQueue) {
     this.store = store;
+    this.queue = queue || new ScanJobQueue(this.store);
   }
 
   getStore(): MemoryDataStore {
     return this.store;
+  }
+
+  getQueue(): ScanJobQueue {
+    return this.queue;
   }
 
   /**
@@ -29,7 +36,7 @@ export class VoomWebServer {
   async start(port = 4000): Promise<number> {
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => {
-        handleRequest(req, res, this.store).catch((err) => {
+        handleRequest(req, res, this.store, this.queue).catch((err) => {
           logger.error('Unhandled server error', err);
           res.statusCode = 500;
           res.end(JSON.stringify({ error: 'Internal Server Error' }));
@@ -98,7 +105,7 @@ export class VoomWebServer {
       };
     });
 
-    handleRequest(req, res, this.store);
+    handleRequest(req, res, this.store, this.queue);
 
     if (body) {
       req.emit('data', Buffer.from(JSON.stringify(body)));
@@ -108,4 +115,3 @@ export class VoomWebServer {
     return promise;
   }
 }
-

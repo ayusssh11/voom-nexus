@@ -2,6 +2,7 @@ import { IncomingMessage, ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { MemoryDataStore } from '../store/data-store.js';
+import { ScanJobQueue } from '../services/queue.js';
 import { renderDashboardHtml } from '../ui/dashboard.js';
 import { SarifReportFormatter, JsonReportFormatter } from '@voom-nexus/reporting';
 
@@ -10,10 +11,16 @@ export interface RouteContext {
   res: ServerResponse;
   url: URL;
   store: MemoryDataStore;
+  queue?: ScanJobQueue;
   body?: any;
 }
 
-export async function handleRequest(req: IncomingMessage, res: ServerResponse, store: MemoryDataStore): Promise<void> {
+export async function handleRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  store: MemoryDataStore,
+  queue?: ScanJobQueue
+): Promise<void> {
   const host = req.headers.host || 'localhost:4000';
   const url = new URL(req.url || '/', `http://${host}`);
   const pathname = url.pathname;
@@ -32,8 +39,6 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse, s
       });
     }
   }
-
-  const ctx: RouteContext = { req, res, url, store, body };
 
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -121,7 +126,41 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse, s
     });
   }
 
-  // 5. Project Ingest Scan Endpoint: POST /api/v1/projects/:projectId/scans
+  // 5. Asynchronous Scan Queueing: POST /api/v1/projects/:projectId/queue-scan
+  const queueScanMatch = pathname.match(/^\/api\/v1\/projects\/([^/]+)\/queue-scan$/);
+  if (method === 'POST' && queueScanMatch) {
+    const projectId = queueScanMatch[1];
+    const project = store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, {
+        success: false,
+        data: null,
+        error: { code: 'NOT_FOUND', message: `Project ${projectId} not found` }
+      });
+    }
+
+    const targetPath = body?.targetPath || '.';
+    if (!queue) {
+      return sendJson(res, 503, {
+        success: false,
+        data: null,
+        error: { code: 'QUEUE_UNAVAILABLE', message: 'Background queue is not initialized' }
+      });
+    }
+
+    const job = queue.enqueue(projectId, targetPath);
+    return sendJson(res, 202, {
+      success: true,
+      data: {
+        jobId: job.id,
+        projectId: job.projectId,
+        status: job.status,
+        createdAt: job.createdAt
+      }
+    });
+  }
+
+  // 6. Project Ingest Scan Endpoint: POST /api/v1/projects/:projectId/scans
   const projectScanMatch = pathname.match(/^\/api\/v1\/projects\/([^/]+)\/scans$/);
   if (method === 'POST' && projectScanMatch) {
     const projectId = projectScanMatch[1];
@@ -165,7 +204,42 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse, s
     });
   }
 
-  // 6. Scan Details: GET /api/v1/scans/:scanId
+  // 7. Background Job Status: GET /api/v1/jobs/:jobId
+  const jobMatch = pathname.match(/^\/api\/v1\/jobs\/([^/]+)$/);
+  if (method === 'GET' && jobMatch) {
+    const jobId = jobMatch[1];
+    if (!queue) {
+      return sendJson(res, 503, {
+        success: false,
+        data: null,
+        error: { code: 'QUEUE_UNAVAILABLE', message: 'Background queue is not initialized' }
+      });
+    }
+
+    const job = queue.getJob(jobId);
+    if (!job) {
+      return sendJson(res, 404, {
+        success: false,
+        data: null,
+        error: { code: 'NOT_FOUND', message: `Job ${jobId} not found` }
+      });
+    }
+
+    return sendJson(res, 200, {
+      success: true,
+      data: job
+    });
+  }
+
+  if (method === 'GET' && pathname === '/api/v1/jobs') {
+    const jobs = queue ? queue.listJobs() : [];
+    return sendJson(res, 200, {
+      success: true,
+      data: { jobs, total: jobs.length }
+    });
+  }
+
+  // 8. Scan Details: GET /api/v1/scans/:scanId
   const scanMatch = pathname.match(/^\/api\/v1\/scans\/([^/]+)$/);
   if (method === 'GET' && scanMatch) {
     const scanId = scanMatch[1];
@@ -184,7 +258,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse, s
     });
   }
 
-  // 7. Scan Export: GET /api/v1/scans/:scanId/export
+  // 9. Scan Export: GET /api/v1/scans/:scanId/export
   const exportMatch = pathname.match(/^\/api\/v1\/scans\/([^/]+)\/export$/);
   if (method === 'GET' && exportMatch) {
     const scanId = exportMatch[1];
@@ -234,7 +308,7 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse, s
     }
   }
 
-  // 8. Finding Status Update: PATCH /api/v1/findings/:findingId/status
+  // 10. Finding Status Update: PATCH /api/v1/findings/:findingId/status
   const findingMatch = pathname.match(/^\/api\/v1\/findings\/([^/]+)\/status$/);
   if (method === 'PATCH' && findingMatch) {
     const findingId = findingMatch[1];
@@ -307,4 +381,3 @@ async function readJsonBody(req: IncomingMessage): Promise<any> {
     req.on('error', (err) => reject(err));
   });
 }
-

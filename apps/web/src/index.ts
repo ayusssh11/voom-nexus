@@ -2,8 +2,10 @@ import { ScanOrchestrator } from '@voom-nexus/core';
 import { logger } from '@voom-nexus/shared';
 import { VoomWebServer } from './server/server.js';
 import { defaultDataStore, MemoryDataStore } from './store/data-store.js';
+import { ScanJobQueue } from './services/queue.js';
 
 export * from './store/data-store.js';
+export * from './services/queue.js';
 export * from './server/server.js';
 export * from './server/router.js';
 export * from './ui/dashboard.js';
@@ -19,11 +21,13 @@ export class WebPlatformService {
   private orchestrator: ScanOrchestrator;
   private server: VoomWebServer;
   private store: MemoryDataStore;
+  private queue: ScanJobQueue;
 
   constructor(store: MemoryDataStore = defaultDataStore) {
     this.store = store;
     this.orchestrator = new ScanOrchestrator();
-    this.server = new VoomWebServer(this.store);
+    this.queue = new ScanJobQueue(this.store, this.orchestrator);
+    this.server = new VoomWebServer(this.store, this.queue);
   }
 
   getStatus(): WebPlatformStatus {
@@ -45,6 +49,10 @@ export class WebPlatformService {
 
   getStore(): MemoryDataStore {
     return this.store;
+  }
+
+  getQueue(): ScanJobQueue {
+    return this.queue;
   }
 }
 

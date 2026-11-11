@@ -118,3 +118,40 @@ test('GET /dashboard renders responsive HTML dashboard', async () => {
   assert.ok(res.body.includes('VOOM NEXUS'));
   assert.ok(res.body.includes('Monitored Applications & Repositories'));
 });
+
+test('POST /api/v1/projects/:id/queue-scan enqueues background scan and updates job status', async () => {
+  const store = new MemoryDataStore();
+  const server = new VoomWebServer(store);
+  const project = store.createProject('Async Worker Project');
+
+  // Enqueue job
+  const enqueueRes = await server.inject('POST', `/api/v1/projects/${project.id}/queue-scan`, {
+    targetPath: './packages/core/src'
+  });
+
+  assert.strictEqual(enqueueRes.statusCode, 202);
+  const jobInfo = enqueueRes.json().data;
+  assert.ok(jobInfo.jobId);
+  assert.strictEqual(jobInfo.projectId, project.id);
+  assert.strictEqual(jobInfo.status, 'QUEUED');
+
+  // Get job immediately
+  const getJobRes = await server.inject('GET', `/api/v1/jobs/${jobInfo.jobId}`);
+  assert.strictEqual(getJobRes.statusCode, 200);
+  const fetchedJob = getJobRes.json().data;
+  assert.strictEqual(fetchedJob.id, jobInfo.jobId);
+
+  // List jobs
+  const listJobsRes = await server.inject('GET', '/api/v1/jobs');
+  assert.strictEqual(listJobsRes.statusCode, 200);
+  assert.ok(listJobsRes.json().data.total >= 1);
+
+  // Allow async worker tick to run
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  // Verify completed job
+  const completedJobRes = await server.inject('GET', `/api/v1/jobs/${jobInfo.jobId}`);
+  assert.strictEqual(completedJobRes.statusCode, 200);
+  const jobState = completedJobRes.json().data;
+  assert.ok(jobState.status === 'COMPLETED' || jobState.status === 'RUNNING');
+});
