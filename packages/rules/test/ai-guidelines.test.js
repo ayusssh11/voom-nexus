@@ -69,3 +69,4 @@ test('generateAntigravityRules produces Antigravity assistant checklist', () => 
   assert.ok(content.includes('No Command Injection'));
   assert.ok(content.includes('No Hardcoded Secrets'));
 });
+
