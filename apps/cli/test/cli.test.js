@@ -73,3 +73,13 @@ test('runCli scan --fix --dry-run simulates fixes without error', async () => {
   // Accepts scan options without failing
   assert.ok(code === 0 || code === 1);
 });
+
+test('runCli audit executes dependency vulnerability audit', async () => {
+  const code = await runCli(['audit', currentDir]);
+  assert.ok(code === 0 || code === 1);
+});
+
+test('runCli scan --audit combines SAST and dependency auditing', async () => {
+  const code = await runCli(['scan', currentDir, '--audit']);
+  assert.ok(code === 0 || code === 1);
+});

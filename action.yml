@@ -1,0 +1,50 @@
+name: 'Voom Nexus Security Scanner'
+description: 'AI-aware application security platform, OWASP Top 10 SAST analysis, and supply chain vulnerability scanner.'
+author: 'Voom Nexus Security Team'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Target directory or repository path to scan'
+    required: false
+    default: '.'
+  threshold:
+    description: 'Minimum severity threshold to trigger build failure (CRITICAL, HIGH, MEDIUM, LOW)'
+    required: false
+    default: 'HIGH'
+  format:
+    description: 'Report output format: sarif, json, markdown, text'
+    required: false
+    default: 'sarif'
+  output:
+    description: 'File path where the generated scan report will be saved'
+    required: false
+    default: 'voomsec-results.sarif'
+  audit:
+    description: 'Enable dependency and supply-chain vulnerability audit'
+    required: false
+    default: 'true'
+
+outputs:
+  report-file:
+    description: 'Path to the generated scan report'
+    value: ${{ inputs.output }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Run Voom Nexus Security Scan
+      shell: bash
+      run: |
+        ARGS="scan ${{ inputs.path }} --format ${{ inputs.format }} --threshold ${{ inputs.threshold }} --output ${{ inputs.output }}"
+        if [ "${{ inputs.audit }}" = "true" ]; then
+          ARGS="$ARGS --audit"
+        fi
+        npx vibesec $ARGS

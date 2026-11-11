@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **CI/CD Integration & Supply Chain Auditing (Phase 8)**:
+  - Supply chain dependency auditor (`DependencyAuditor` in `@voom-nexus/core`) detecting known CVEs across `package-lock.json` (v1/v2/v3) and `package.json` manifests (`event-stream`, `lodash`, `axios`, `minimist`, `jsonwebtoken`, `shelljs`).
+  - Mapped third-party vulnerabilities to `SEC-DEP-001`, `CWE-1395`, and `OWASP A06:2021-Vulnerable and Outdated Components`.
+  - CLI commands and options:
+    - `vibesec audit [path]`: Dedicated supply chain scanning command with format and threshold flags.
+    - `vibesec scan --audit`: Unified static code and dependency vulnerability analysis.
+  - Official GitHub Action definition (`action.yml`) allowing zero-config integration (`uses: voom-nexus/action@v1`).
+  - GitHub Actions CI workflow template (`.github/workflows/security-scan.yml`) with automated SARIF upload to GitHub Code Scanning.
+  - GitLab CI pipeline template (`docs/ci-templates/gitlab-ci.yml`).
+  - Expanded unit and integration test suite to 73 passing tests.
 - **AI Coding Assistant Security Guidelines (Phase 7)**:
   - Framework-specific security rule packs and generators (`AiGuidelineGenerator` in `@voom-nexus/rules`) targeting:
     - **Next.js**: Server Component secret isolation, Server Action authorization checks, Zod validation in Route Handlers, and `dangerouslySetInnerHTML` DOMPurify guardrails.

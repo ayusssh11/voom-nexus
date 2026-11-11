@@ -1,6 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import { writeFile, mkdir } from 'node:fs/promises';
-import { ScanOrchestrator, AutoFixer } from '@voom-nexus/core';
+import { ScanOrchestrator, AutoFixer, DependencyAuditor } from '@voom-nexus/core';
 import {
   TerminalReportFormatter,
   JsonReportFormatter,
@@ -19,6 +19,7 @@ export interface CliScanOptions {
   baseline?: string;
   fix?: boolean;
   dryRun?: boolean;
+  audit?: boolean;
 }
 
 export async function runScan(options: CliScanOptions = {}): Promise<number> {
@@ -33,6 +34,20 @@ export async function runScan(options: CliScanOptions = {}): Promise<number> {
 
   const orchestrator = new ScanOrchestrator(config);
   const result = await orchestrator.scanPath(targetPath);
+
+  // Dependency & Supply Chain Auditing (--audit)
+  if (options.audit) {
+    const auditor = new DependencyAuditor();
+    const auditReport = await auditor.auditDirectory(targetPath);
+    if (auditReport.issues.length > 0) {
+      result.issues.push(...auditReport.issues);
+      result.metrics.totalIssues += auditReport.issues.length;
+      result.metrics.criticalCount += auditReport.issues.filter((i) => i.severity === 'CRITICAL').length;
+      result.metrics.highCount += auditReport.issues.filter((i) => i.severity === 'HIGH').length;
+      result.metrics.mediumCount += auditReport.issues.filter((i) => i.severity === 'MEDIUM').length;
+      result.metrics.lowCount += auditReport.issues.filter((i) => i.severity === 'LOW').length;
+    }
+  }
 
   // Automated Remediation (--fix / --dry-run)
   if (options.fix) {

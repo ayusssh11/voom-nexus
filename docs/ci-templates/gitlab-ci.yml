@@ -1,0 +1,19 @@
+# GitLab CI Pipeline Template for Voom Nexus Application Security
+stages:
+  - security-test
+
+voom_nexus_security_scan:
+  stage: security-test
+  image: node:20-alpine
+  script:
+    - npx vibesec scan . --format sarif --output gl-sast-report.json --threshold HIGH --audit
+  artifacts:
+    name: "security-report-$CI_COMMIT_REF_NAME"
+    when: always
+    paths:
+      - gl-sast-report.json
+    reports:
+      sast: gl-sast-report.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
