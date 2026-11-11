@@ -1,5 +1,3 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, extname, relative } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import {
   ScanResult,
@@ -11,6 +9,8 @@ import {
 import { VoomConfig, DEFAULT_CONFIG } from '@voom-nexus/config';
 import { defaultRuleRegistry } from '@voom-nexus/rules';
 import { defaultAdapterRegistry } from '@voom-nexus/parsers';
+import { DirectoryWalker, FileEntry } from './walker.js';
+import { SafeFileReader } from './reader.js';
 
 export interface ScanOptions {
   path?: string;
@@ -29,20 +29,38 @@ export class ScanOrchestrator {
     const startTime = Date.now();
     logger.info(`Starting security scan of target: ${targetPath}`);
 
-    const filesToScan: string[] = [];
-    await this.collectFiles(targetPath, filesToScan);
+    // 1. Traverse directory using DirectoryWalker
+    const walker = new DirectoryWalker({
+      basePath: targetPath,
+      excludePatterns: this.config.scan.exclude,
+      maxFileSizeBytes: 2 * 1024 * 1024 // 2 MB limit
+    });
+
+    const fileEntries: FileEntry[] = await walker.walk();
+    logger.debug(`Discovered ${fileEntries.length} candidate files for scanning`);
 
     const issues: SecurityIssue[] = [];
     let scannedCount = 0;
+    let skippedCount = 0;
 
-    for (const file of filesToScan) {
-      const fileIssues = await this.scanSingleFile(file, targetPath);
-      issues.push(...fileIssues);
-      scannedCount++;
+    // 2. Process each file with safe reader and timeout protection
+    for (const entry of fileEntries) {
+      try {
+        const fileIssues = await this.scanWithTimeout(entry.path, targetPath, this.config.scan.timeoutMs);
+        if (fileIssues === null) {
+          skippedCount++;
+        } else {
+          issues.push(...fileIssues);
+          scannedCount++;
+        }
+      } catch (err) {
+        logger.warn(`Scan error on file ${entry.relativePath}: ${err}`);
+        skippedCount++;
+      }
     }
 
     const durationMs = Date.now() - startTime;
-    const metrics = this.calculateMetrics(filesToScan.length, scannedCount, issues, durationMs);
+    const metrics = this.calculateMetrics(fileEntries.length, scannedCount, skippedCount, issues, durationMs);
 
     return {
       scanId: randomUUID(),
@@ -53,64 +71,72 @@ export class ScanOrchestrator {
     };
   }
 
-  private async collectFiles(targetPath: string, fileList: string[]): Promise<void> {
-    try {
-      const fileStat = await stat(targetPath);
-      if (fileStat.isFile()) {
-        fileList.push(targetPath);
-        return;
-      }
-    } catch {
-      return;
-    }
+  /**
+   * Executes single file scanning with timeout protection
+   */
+  private async scanWithTimeout(
+    filePath: string,
+    rootPath: string,
+    timeoutMs: number
+  ): Promise<SecurityIssue[] | null> {
+    return new Promise((resolve) => {
+      let isSettled = false;
 
-    let entries;
-    try {
-      entries = await readdir(targetPath, { withFileTypes: true });
-    } catch {
-      return;
-    }
-
-    for (const entry of entries) {
-      const fullPath = join(targetPath, entry.name);
-
-      if (entry.isDirectory()) {
-        if (this.isExcluded(entry.name)) {
-          continue;
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          logger.warn(`Scan timed out for file (${timeoutMs}ms limit): ${filePath}`);
+          resolve(null);
         }
-        await this.collectFiles(fullPath, fileList);
-      } else if (entry.isFile()) {
-        const adapter = defaultAdapterRegistry.getAdapterForFile(entry.name);
-        if (adapter) {
-          fileList.push(fullPath);
-        }
-      }
-    }
+      }, timeoutMs);
+
+      this.scanSingleFile(filePath, rootPath)
+        .then((result) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            resolve(result);
+          }
+        })
+        .catch((err) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            logger.warn(`Error scanning file ${filePath}: ${err}`);
+            resolve(null);
+          }
+        });
+    });
   }
 
-  private isExcluded(name: string): boolean {
-    const defaultIgnores = ['node_modules', '.git', 'dist', 'build', 'coverage', '.next'];
-    return defaultIgnores.includes(name);
-  }
-
-  private async scanSingleFile(filePath: string, rootPath: string): Promise<SecurityIssue[]> {
-    const relativePath = relative(rootPath, filePath) || filePath;
-    let content: string;
-    try {
-      content = await readFile(filePath, 'utf-8');
-    } catch {
-      return [];
+  private async scanSingleFile(filePath: string, rootPath: string): Promise<SecurityIssue[] | null> {
+    // Read file safely
+    const readResult = await SafeFileReader.readTextFile(filePath);
+    if (!readResult.success || readResult.isBinary) {
+      logger.debug(`Skipping file (binary or unreadable): ${filePath}`);
+      return null;
     }
 
+    const adapter = defaultAdapterRegistry.getAdapterForFile(filePath);
+    if (!adapter) {
+      return null;
+    }
+
+    const parseResult = await adapter.parse(filePath, readResult.content);
     const issues: SecurityIssue[] = [];
-    const lines = content.split('\n');
+    const relativePath = entryRelative(rootPath, filePath);
 
-    // Basic heuristic rules check for initialization
-    for (let i = 0; i < lines.length; i++) {
-      const lineText = lines[i];
+    // Evaluate rules on lines
+    for (let i = 0; i < parseResult.lines.length; i++) {
+      const lineText = parseResult.lines[i];
       const lineNum = i + 1;
 
-      // Sample check 1: SQL Injection
+      // Check for inline suppression: e.g. // voomsec-ignore-next-line
+      if (i > 0 && parseResult.lines[i - 1].includes('voomsec-ignore-next-line')) {
+        continue;
+      }
+
+      // Detection 1: SQL Injection
       if (/SELECT\s+.*\s+FROM\s+.*WHERE\s+.*['"`]\s*\+\s*|`SELECT\s+.*WHERE\s+.*\$\{/i.test(lineText)) {
         issues.push({
           id: randomUUID(),
@@ -127,7 +153,7 @@ export class ScanOrchestrator {
         });
       }
 
-      // Sample check 2: Hardcoded secrets
+      // Detection 2: Hardcoded Secrets
       if (/["'](?:api[_-]?key|secret|password)["']\s*[:=]\s*["'][^"']{8,}["']/i.test(lineText)) {
         issues.push({
           id: randomUUID(),
@@ -143,6 +169,40 @@ export class ScanOrchestrator {
           remediation: 'Extract credentials into environment variables.'
         });
       }
+
+      // Detection 3: Command Injection via child_process
+      if (/\b(?:exec|execSync)\s*\(\s*`[^`]*\$\{/i.test(lineText)) {
+        issues.push({
+          id: randomUUID(),
+          ruleId: 'SEC-JS-003',
+          title: 'Command Injection via Child Process Execution',
+          severity: 'CRITICAL',
+          confidence: 'CERTAIN',
+          cwe: 'CWE-78',
+          owasp: 'A03:2021-Injection',
+          file: relativePath,
+          line: lineNum,
+          snippet: redactSecrets(lineText.trim()),
+          remediation: 'Use execFile() with discrete argument arrays instead of shell concatenation.'
+        });
+      }
+
+      // Detection 4: Weak Cryptography (MD5/SHA1)
+      if (/createHash\s*\(\s*["'](?:md5|sha1)["']\s*\)/i.test(lineText)) {
+        issues.push({
+          id: randomUUID(),
+          ruleId: 'SEC-JS-004',
+          title: 'Weak Cryptographic Hash Function (MD5/SHA1)',
+          severity: 'HIGH',
+          confidence: 'CERTAIN',
+          cwe: 'CWE-327',
+          owasp: 'A02:2021-Cryptographic Failures',
+          file: relativePath,
+          line: lineNum,
+          snippet: redactSecrets(lineText.trim()),
+          remediation: 'Replace MD5/SHA-1 with SHA-256 or Argon2id for password hashing.'
+        });
+      }
     }
 
     return issues;
@@ -151,6 +211,7 @@ export class ScanOrchestrator {
   private calculateMetrics(
     totalFiles: number,
     scannedFiles: number,
+    skippedFiles: number,
     issues: SecurityIssue[],
     durationMs: number
   ): ScanMetrics {
@@ -183,7 +244,7 @@ export class ScanOrchestrator {
     return {
       totalFiles,
       scannedFiles,
-      skippedFiles: Math.max(0, totalFiles - scannedFiles),
+      skippedFiles,
       totalIssues: issues.length,
       criticalCount,
       highCount,
@@ -193,4 +254,9 @@ export class ScanOrchestrator {
       durationMs
     };
   }
+}
+
+function entryRelative(root: string, file: string): string {
+  const rel = file.startsWith(root) ? file.slice(root.length).replace(/^[/\\]+/, '') : file;
+  return rel || file;
 }

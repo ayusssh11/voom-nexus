@@ -1,9 +1,17 @@
+export interface CodeLocation {
+  line: number;
+  column: number;
+}
+
 export interface ParseResult {
   filePath: string;
   language: string;
   lineCount: number;
+  lines: string[];
   ast?: unknown;
   rawContent: string;
+  syntaxError?: string;
+  getLine(lineNumber: number): string | undefined;
 }
 
 export interface LanguageAdapter {
@@ -15,16 +23,20 @@ export interface LanguageAdapter {
 
 export class GenericLanguageAdapter implements LanguageAdapter {
   name = 'generic';
-  extensions = ['.txt', '.env', '.json', '.yaml', '.yml', '.md'];
+  extensions = ['.txt', '.env', '.json', '.yaml', '.yml', '.md', '.ini', '.conf'];
   supportsAST = false;
 
   async parse(filePath: string, content: string): Promise<ParseResult> {
-    const lineCount = content.split('\n').length;
+    const lines = content.split('\n');
     return {
       filePath,
       language: this.name,
-      lineCount,
-      rawContent: content
+      lineCount: lines.length,
+      lines,
+      rawContent: content,
+      getLine(num: number) {
+        return lines[num - 1];
+      }
     };
   }
 }
@@ -35,12 +47,36 @@ export class JavaScriptAdapter implements LanguageAdapter {
   supportsAST = true;
 
   async parse(filePath: string, content: string): Promise<ParseResult> {
-    const lineCount = content.split('\n').length;
+    const lines = content.split('\n');
     return {
       filePath,
       language: this.name,
-      lineCount,
-      rawContent: content
+      lineCount: lines.length,
+      lines,
+      rawContent: content,
+      getLine(num: number) {
+        return lines[num - 1];
+      }
+    };
+  }
+}
+
+export class PythonAdapter implements LanguageAdapter {
+  name = 'python';
+  extensions = ['.py', '.pyw'];
+  supportsAST = false; // Planned for AST in Phase 2
+
+  async parse(filePath: string, content: string): Promise<ParseResult> {
+    const lines = content.split('\n');
+    return {
+      filePath,
+      language: this.name,
+      lineCount: lines.length,
+      lines,
+      rawContent: content,
+      getLine(num: number) {
+        return lines[num - 1];
+      }
     };
   }
 }
@@ -69,4 +105,4 @@ export class LanguageAdapterRegistry {
 export const defaultAdapterRegistry = new LanguageAdapterRegistry();
 defaultAdapterRegistry.register(new GenericLanguageAdapter());
 defaultAdapterRegistry.register(new JavaScriptAdapter());
-
+defaultAdapterRegistry.register(new PythonAdapter());
