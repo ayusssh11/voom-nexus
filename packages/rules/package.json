@@ -1,0 +1,24 @@
+{
+  "name": "@voom-nexus/rules",
+  "version": "0.1.0-alpha.0",
+  "description": "Security rule registry, definitions, and remediation metadata for Voom Nexus",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@voom-nexus/shared": "*"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "test": "node --test test/**/*.test.js",
+    "clean": "rm -rf dist"
+  },
+  "license": "SEE LICENSE IN ../../LICENSE"
+}

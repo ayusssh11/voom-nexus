@@ -1,0 +1,24 @@
+{
+  "name": "@voom-nexus/reporting",
+  "version": "0.1.0-alpha.0",
+  "description": "Report formatters for Voom Nexus (Terminal, JSON, SARIF, Markdown)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@voom-nexus/shared": "*"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "test": "node --test test/**/*.test.js",
+    "clean": "rm -rf dist"
+  },
+  "license": "SEE LICENSE IN ../../LICENSE"
+}

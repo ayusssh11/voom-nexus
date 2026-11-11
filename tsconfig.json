@@ -1,0 +1,13 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./packages/config" },
+    { "path": "./packages/rules" },
+    { "path": "./packages/parsers" },
+    { "path": "./packages/reporting" },
+    { "path": "./packages/core" },
+    { "path": "./apps/cli" },
+    { "path": "./apps/web" }
+  ]
+}

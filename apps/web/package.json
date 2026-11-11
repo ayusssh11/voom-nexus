@@ -1,0 +1,20 @@
+{
+  "name": "@voom-nexus/web",
+  "version": "0.1.0-alpha.0",
+  "description": "Web dashboard and API backend for Voom Nexus — Vibe Security Tool",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@voom-nexus/core": "*",
+    "@voom-nexus/reporting": "*",
+    "@voom-nexus/shared": "*"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "test": "node --test test/**/*.test.js",
+    "clean": "rm -rf dist"
+  },
+  "license": "SEE LICENSE IN ../../LICENSE"
+}

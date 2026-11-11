@@ -1,0 +1,26 @@
+{
+  "name": "@voom-nexus/cli",
+  "version": "0.1.0-alpha.0",
+  "description": "Developer CLI for Voom Nexus — Vibe Security Tool",
+  "type": "module",
+  "bin": {
+    "vibesec": "./dist/index.js",
+    "voom-sec": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@voom-nexus/config": "*",
+    "@voom-nexus/core": "*",
+    "@voom-nexus/reporting": "*",
+    "@voom-nexus/rules": "*",
+    "@voom-nexus/shared": "*"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "test": "node --test test/**/*.test.js",
+    "clean": "rm -rf dist"
+  },
+  "license": "SEE LICENSE IN ../../LICENSE"
+}

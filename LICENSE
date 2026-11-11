@@ -1,0 +1,30 @@
+# Software License Evaluation & Status
+
+## Current Status: PENDING FORMAL SELECTION
+
+The project maintainers are currently evaluating open-source licenses for **Voom Nexus — Vibe Security Tool**. A formal license has not yet been selected.
+
+---
+
+## Maintainer Recommendation
+
+The engineering team strongly recommends licensing Voom Nexus under the **Apache License, Version 2.0**:
+
+### Why Apache-2.0?
+1. **Developer Adoption**: Enables widespread adoption in open-source, academic, and commercial environments without viral copyleft restrictions.
+2. **Explicit Patent Grant**: Provides explicit protection for both contributors and users against patent infringement claims regarding contributions, which is critical for security tooling.
+3. **Trademark Protection**: Explicitly prevents users from using project trademarks without authorization.
+4. **Attribution & Transparency**: Mandates that modified files carry prominent notices stating that they have been changed, protecting the integrity of the security engine.
+
+### Alternative Option Considered: MIT License
+- *Pros*: Maximum simplicity and universal familiarity.
+- *Cons*: Lacks explicit patent retaliation and grant clauses present in Apache 2.0.
+
+---
+
+## Interim Usage Terms
+
+Until a formal open-source license file is finalized and committed by the project owner:
+- All rights are reserved by the original project authors.
+- Contributors agree that their submitted contributions will be licensed under whichever standard open-source license (e.g., Apache-2.0 or MIT) is formally adopted by the project.
+- No commercial exploitation or sublicensing is permitted without express written consent from the project owners.
