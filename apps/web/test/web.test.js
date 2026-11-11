@@ -155,3 +155,69 @@ test('POST /api/v1/projects/:id/queue-scan enqueues background scan and updates 
   const jobState = completedJobRes.json().data;
   assert.ok(jobState.status === 'COMPLETED' || jobState.status === 'RUNNING');
 });
+
+test('GET /api/v1/findings and /api/v1/audit-logs support filtering and compliance tracking', async () => {
+  const store = new MemoryDataStore();
+  const server = new VoomWebServer(store);
+  const project = store.createProject('FinTech Core');
+
+  const scanPayload = {
+    scanId: 'scan_fintech_01',
+    targetPath: './src',
+    metrics: {
+      totalFiles: 5,
+      scannedFiles: 5,
+      skippedFiles: 0,
+      totalIssues: 1,
+      criticalCount: 1,
+      highCount: 0,
+      mediumCount: 0,
+      lowCount: 0,
+      infoCount: 0,
+      durationMs: 5
+    },
+    findings: [
+      {
+        id: 'find_sqli_100',
+        ruleId: 'SEC-JS-001',
+        title: 'SQL Injection',
+        severity: 'CRITICAL',
+        confidence: 'CERTAIN',
+        cwe: 'CWE-89',
+        owasp: 'A03',
+        file: 'src/account.ts',
+        line: 42,
+        snippet: 'SELECT * FROM accounts',
+        remediation: 'Use prepared statements'
+      }
+    ]
+  };
+
+  await server.inject('POST', `/api/v1/projects/${project.id}/scans`, scanPayload);
+
+  // Initial health score should be 75 (100 - 25 for critical)
+  assert.strictEqual(store.getProject(project.id)?.healthScore, 75);
+
+  // List findings
+  const findingsRes = await server.inject('GET', `/api/v1/findings?projectId=${project.id}`);
+  assert.strictEqual(findingsRes.statusCode, 200);
+  const findings = findingsRes.json().data.findings;
+  assert.strictEqual(findings.length, 1);
+  assert.strictEqual(findings[0].id, 'find_sqli_100');
+
+  // Mark finding as RESOLVED
+  const resolveRes = await server.inject('PATCH', '/api/v1/findings/find_sqli_100/status', {
+    status: 'RESOLVED',
+    reason: 'Parameterized query applied via AutoFixer'
+  });
+  assert.strictEqual(resolveRes.statusCode, 200);
+
+  // Health score should automatically rebound to 100
+  assert.strictEqual(store.getProject(project.id)?.healthScore, 100);
+
+  // Check audit log
+  const auditRes = await server.inject('GET', '/api/v1/audit-logs');
+  assert.strictEqual(auditRes.statusCode, 200);
+  const logs = auditRes.json().data.logs;
+  assert.ok(logs.some((l) => l.action === 'FINDING_STATUS_UPDATED' && l.entityId === 'find_sqli_100'));
+});

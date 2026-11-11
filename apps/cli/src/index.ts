@@ -49,6 +49,10 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
         } else if (args[i] === '--severity' && args[i + 1]) {
           options.severity = args[i + 1].split(',').map((s) => s.trim());
           i++;
+        } else if (args[i] === '--fix') {
+          options.fix = true;
+        } else if (args[i] === '--dry-run') {
+          options.dryRun = true;
         }
       }
 
@@ -113,6 +117,8 @@ Options for "scan":
   --threshold <lvl>  Exit with code 1 if issues >= threshold (default: high)
   --output <file>    Save formatted report to file
   --baseline <file>  Save scan findings as baseline snapshot JSON
+  --fix              Automatically remediate high-confidence vulnerabilities
+  --dry-run          Simulate remediation patches without writing to disk
 
 Options for "verify":
   --baseline <file>  Path to baseline JSON (default: .voomsec/baseline.json)

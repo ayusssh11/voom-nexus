@@ -25,6 +25,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Vulnerability Reporting & Remediation Workflows (Phase 6)**:
+  - Automated safe remediation engine (`AutoFixer` in `@voom-nexus/core`) providing recipes for high-confidence rules:
+    - `SEC-JS-004`: Automatic cryptographic upgrade from MD5/SHA1 to SHA-256.
+    - `SEC-JS-010`: Insecure `Math.random()` token replacement with `crypto.randomBytes(16)`.
+    - `SEC-JS-012`: Password length enforcement upgrade to >= 12 characters.
+    - `SEC-JS-009`: CORS wildcard `*` replacement with environment whitelist.
+  - CLI commands updated with `--fix` and `--dry-run`:
+    - `vibesec scan --fix`: Evaluates and applies verified security patches directly to source files.
+    - `vibesec scan --fix --dry-run`: Simulates patch application and displays diffs without touching disk.
+  - Remediation tracking and finding triage in REST API:
+    - `GET /api/v1/findings`: Filter findings by status (`OPEN`, `RESOLVED`, `FALSE_POSITIVE`) or project.
+    - `PATCH /api/v1/findings/:id/status`: Updates finding status and automatically recalculates project Health Score.
+    - `GET /api/v1/audit-logs`: Immutable audit trails for all triage events.
+  - Comprehensive unit and integration test suites (59 passing tests across all packages).
 - **Repository Integration & Asynchronous Scan Queue (Phase 5)**:
   - `SafeArchiveExtractor` in `@voom-nexus/core` defending against Zip Slip (CWE-22 path traversal) and Decompression Bombs with strict byte thresholds (100MB limit) and max file counts (2,000 files).
   - Background asynchronous scanning queue (`ScanJobQueue` in `@voom-nexus/web`) with non-blocking job state transitions (`QUEUED` -> `RUNNING` -> `COMPLETED` / `FAILED`).

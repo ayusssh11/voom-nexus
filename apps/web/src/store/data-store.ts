@@ -166,7 +166,46 @@ export class MemoryDataStore {
 
     finding.status = status;
     this.logAudit('FINDING_STATUS_UPDATED', 'finding', findingId, { status, reason });
+
+    // Find the associated project to recalculate health score
+    for (const scan of this.scans.values()) {
+      const containsFinding = scan.findings.some((f) => f.id === findingId);
+      if (containsFinding) {
+        const project = this.projects.get(scan.projectId);
+        if (project) {
+          // Recompute open issues across all scans of this project
+          const allActiveFindings = this.listFindings({ projectId: project.id, status: 'OPEN' });
+          project.openIssuesCount = {
+            critical: allActiveFindings.filter((f) => f.severity === 'CRITICAL').length,
+            high: allActiveFindings.filter((f) => f.severity === 'HIGH').length,
+            medium: allActiveFindings.filter((f) => f.severity === 'MEDIUM').length,
+            low: allActiveFindings.filter((f) => f.severity === 'LOW').length
+          };
+          const penalty =
+            project.openIssuesCount.critical * 25 +
+            project.openIssuesCount.high * 10 +
+            project.openIssuesCount.medium * 4 +
+            project.openIssuesCount.low * 1;
+          project.healthScore = Math.max(0, 100 - penalty);
+        }
+        break;
+      }
+    }
+
     return finding;
+  }
+
+  listFindings(filter?: { status?: FindingStatus; projectId?: string }): SecurityIssue[] {
+    let results = Array.from(this.findings.values());
+    if (filter?.status) {
+      results = results.filter((f) => (f.status || 'OPEN') === filter.status);
+    }
+    if (filter?.projectId) {
+      const projectScans = this.listScansForProject(filter.projectId);
+      const scanFindingIds = new Set(projectScans.flatMap((s) => s.findings.map((f) => f.id)));
+      results = results.filter((f) => scanFindingIds.has(f.id));
+    }
+    return results;
   }
 
   logAudit(action: string, entityType: string, entityId: string, metadata: Record<string, unknown> = {}): AuditRecord {

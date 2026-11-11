@@ -342,6 +342,33 @@ export async function handleRequest(
     });
   }
 
+  // 11. List Findings: GET /api/v1/findings
+  if (method === 'GET' && pathname === '/api/v1/findings') {
+    const status = url.searchParams.get('status') as any;
+    const projectId = url.searchParams.get('projectId') || undefined;
+    const findings = store.listFindings({ status, projectId });
+
+    return sendJson(res, 200, {
+      success: true,
+      data: {
+        findings,
+        total: findings.length
+      }
+    });
+  }
+
+  // 12. Audit Logs: GET /api/v1/audit-logs
+  if (method === 'GET' && pathname === '/api/v1/audit-logs') {
+    const logs = store.getAuditLogs();
+    return sendJson(res, 200, {
+      success: true,
+      data: {
+        logs,
+        total: logs.length
+      }
+    });
+  }
+
   // Fallback 404
   return sendJson(res, 404, {
     success: false,

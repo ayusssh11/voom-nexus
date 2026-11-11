@@ -47,3 +47,9 @@ test('runCli init generates configuration and AI rules', async () => {
   assert.ok(claudeMd.includes('Security Guidelines for Claude Code'));
   await rm(targetInitDir, { recursive: true, force: true });
 });
+
+test('runCli scan --fix --dry-run simulates fixes without error', async () => {
+  const code = await runCli(['scan', currentDir, '--fix', '--dry-run']);
+  // Accepts scan options without failing
+  assert.ok(code === 0 || code === 1);
+});

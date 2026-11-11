@@ -1,6 +1,6 @@
 import { resolve, dirname } from 'node:path';
 import { writeFile, mkdir } from 'node:fs/promises';
-import { ScanOrchestrator } from '@voom-nexus/core';
+import { ScanOrchestrator, AutoFixer } from '@voom-nexus/core';
 import {
   TerminalReportFormatter,
   JsonReportFormatter,
@@ -17,6 +17,8 @@ export interface CliScanOptions {
   output?: string;
   threshold?: string;
   baseline?: string;
+  fix?: boolean;
+  dryRun?: boolean;
 }
 
 export async function runScan(options: CliScanOptions = {}): Promise<number> {
@@ -31,6 +33,31 @@ export async function runScan(options: CliScanOptions = {}): Promise<number> {
 
   const orchestrator = new ScanOrchestrator(config);
   const result = await orchestrator.scanPath(targetPath);
+
+  // Automated Remediation (--fix / --dry-run)
+  if (options.fix) {
+    const fixer = new AutoFixer();
+    const fixResult = await fixer.applyFixes(result.issues, options.dryRun);
+
+    console.log('\n====================================================');
+    console.log(`  VOOM NEXUS — AUTOMATED REMEDIATION ${options.dryRun ? '(DRY-RUN)' : ''}`);
+    console.log('====================================================');
+    console.log(`- Fixable Issues Detected: ${fixResult.totalFixable}`);
+    console.log(`- Patches ${options.dryRun ? 'Simulated' : 'Applied'}:    ${fixResult.appliedCount}`);
+    console.log(`- Skipped / Manual Review: ${fixResult.skippedCount}\n`);
+
+    for (const patch of fixResult.patches) {
+      console.log(`[${patch.ruleId}] ${patch.file}:${patch.line}`);
+      console.log(`  Description: ${patch.description}`);
+      console.log(`  - Original:    ${patch.originalText}`);
+      console.log(`  + Replacement: ${patch.replacementText}\n`);
+    }
+
+    if (!options.dryRun && fixResult.appliedCount > 0) {
+      console.log(`✓ Applied ${fixResult.appliedCount} security patches to disk.`);
+      console.log('  Run "vibesec scan" again to verify remaining findings.\n');
+    }
+  }
 
   // Format selection
   const format = options.format || config.reporting.format || 'text';
