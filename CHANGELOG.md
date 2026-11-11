@@ -25,6 +25,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Web Application & RESTful API Platform (Phase 4)**:
+  - In-memory data store (`MemoryDataStore`) managing projects, scans, findings, and immutable audit logs conforming to `DATABASE_SCHEMA.md`.
+  - Security Health Score engine automatically calculating project ratings (0 - 100) based on severity weights.
+  - Native HTTP RESTful API server (`VoomWebServer`) implementing endpoints with standard envelopes:
+    - `GET /` and `GET /dashboard`: Responsive HTML/CSS security management dashboard.
+    - `GET /api/v1/health`: System health and engine status.
+    - `POST /api/v1/auth/login`: Authentication and token generation.
+    - `GET /api/v1/projects` & `POST /api/v1/projects`: Multi-project management.
+    - `POST /api/v1/projects/:id/scans`: Scan result ingestion and real-time health score updates.
+    - `GET /api/v1/scans/:id`: Scan details and vulnerability lists.
+    - `GET /api/v1/scans/:id/export?format=sarif|json`: Standardized export formats.
+    - `PATCH /api/v1/findings/:id/status`: Finding triage and status updates (False Positive, Fixed, Open).
+  - Integration test suite using in-memory request injection (48 passing tests).
 - **Functional CLI Application (Phase 3)**:
   - Subcommands implemented:
     - `vibesec scan [path]`: Supports `--format <text|json|sarif|markdown>`, `--severity <list>`, `--output <file>`, `--threshold <level>`, `--baseline <file>`.
