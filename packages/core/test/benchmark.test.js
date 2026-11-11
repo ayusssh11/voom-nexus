@@ -41,3 +41,4 @@ test('ScanOrchestrator achieves <= 3ms per file scanning performance target', as
 
   await rm(benchDir, { recursive: true, force: true });
 });
+

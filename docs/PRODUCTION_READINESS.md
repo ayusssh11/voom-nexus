@@ -79,3 +79,4 @@ A hardened production container is configured via [`Dockerfile`](../Dockerfile) 
 - [x] Official GitHub Action (`action.yml`) defined and verified.
 - [x] AI coding assistant guardrails generated for Cursor, Claude, Windsurf, Copilot, and Antigravity.
 - [x] Comprehensive documentation suite maintained in `/docs`.
+
