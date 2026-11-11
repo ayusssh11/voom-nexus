@@ -25,6 +25,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Initial Security Rules & Static Analysis (Phase 2)**:
+  - Implemented 15 executable security detection rules covering OWASP Top 10 (2021) and CWE taxonomy:
+    - `SEC-JS-001`: SQL Injection via dynamic string concatenation (CWE-89, OWASP A03)
+    - `SEC-JS-002`: Cross-Site Scripting (XSS) via unencoded HTML output (CWE-79, OWASP A03)
+    - `SEC-JS-003`: Command Injection via child_process execution (CWE-78, OWASP A03)
+    - `SEC-JS-004`: Weak Cryptographic Hash Function MD5/SHA1 (CWE-327, OWASP A02)
+    - `SEC-JS-005`: Path Traversal via unsanitized file access (CWE-22, OWASP A01)
+    - `SEC-JS-006`: Unsafe Code Execution via `eval()` or dynamic Function (CWE-95, OWASP A03)
+    - `SEC-JS-007`: Server-Side Request Forgery (SSRF) via dynamic requests (CWE-918, OWASP A10)
+    - `SEC-JS-008`: Insecure Deserialization via node-serialize / unserialize (CWE-502, OWASP A08)
+    - `SEC-JS-009`: Permissive CORS Configuration with wildcard origin (CWE-942, OWASP A05)
+    - `SEC-JS-010`: Insecure Pseudo-Random Number Generation via Math.random (CWE-338, OWASP A04)
+    - `SEC-JS-011`: Sensitive Information Exposure in Application Logs (CWE-532, OWASP A09)
+    - `SEC-JS-012`: Weak Password Validation Policy (CWE-521, OWASP A07)
+    - `SEC-JS-013`: Prototype Pollution via unsafe property assignment (CWE-1321, OWASP A08)
+    - `SEC-GEN-001`: Hardcoded Secret or API Key Exposure (CWE-798, OWASP A07)
+    - `SEC-GEN-002`: Hardcoded Private Cryptographic Key (CWE-798, OWASP A07)
+  - Integrated rule evaluation into `ScanOrchestrator` across files and line streams.
+  - Expanded test suite to 41 passing automated tests.
 - **Core Security Engine Foundation (Phase 1)**:
   - Streaming, asynchronous `DirectoryWalker` with `.gitignore` and `.voomsecignore` evaluation.
   - Cycle and symlink recursion loop defense via inode tracking (`${dev}:${ino}`).
