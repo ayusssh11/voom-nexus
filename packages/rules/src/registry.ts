@@ -46,3 +46,4 @@ export class RuleRegistry {
 }
 
 export const defaultRuleRegistry = new RuleRegistry();
+

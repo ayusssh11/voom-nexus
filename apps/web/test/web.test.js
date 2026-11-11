@@ -12,3 +12,4 @@ test('WebPlatformService holds reference to shared engine', () => {
   const orchestrator = webPlatformService.getOrchestrator();
   assert.ok(orchestrator);
 });
+

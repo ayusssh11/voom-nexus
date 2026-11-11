@@ -206,3 +206,4 @@ Each generated rule file translates OWASP Top 10 negative constraints into assis
 2. Avoid `dangerouslySetInnerHTML`, `innerHTML`, and `eval()`.
 3. Require cryptographic algorithms like `argon2id` and `AES-256-GCM`.
 4. Refuse to generate raw hardcoded API keys or placeholder passwords.
+

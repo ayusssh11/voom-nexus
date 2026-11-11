@@ -140,3 +140,4 @@
 2. **Scan Latency**: Average scan time under 3 ms per source file.
 3. **Developer Actionability**: > 90% of reported vulnerabilities contain a valid, copy-pasteable remediation snippet.
 4. **AI Assistant Adoption**: Successful generation of valid instruction files across all 5 major AI coding assistants.
+

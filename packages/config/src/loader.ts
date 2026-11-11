@@ -48,3 +48,4 @@ export function mergeWithDefaults(custom: Partial<VoomConfig>): VoomConfig {
     }
   };
 }
+

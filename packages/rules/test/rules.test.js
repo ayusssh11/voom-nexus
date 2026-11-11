@@ -22,3 +22,4 @@ test('RuleRegistry respects disabledRules', () => {
   const filtered = defaultRuleRegistry.getFiltered({ disabledRules: ['SEC-JS-001'] });
   assert.ok(!filtered.some((r) => r.id === 'SEC-JS-001'));
 });
+

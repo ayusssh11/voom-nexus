@@ -44,3 +44,4 @@ This document records architectural, product, and technical questions currently 
   2. A local backup or git working tree check must verify no uncommitted changes exist before applying fixes.
   3. Re-run verification scan immediately after applying fix to ensure no syntax corruption or secondary vulnerability was introduced.
 - **Status**: Scheduled for design in Phase 6.
+

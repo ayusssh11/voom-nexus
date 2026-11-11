@@ -113,3 +113,4 @@ export class TerminalReportFormatter implements ReportFormatter {
     return lines.join('\n');
   }
 }
+

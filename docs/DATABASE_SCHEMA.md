@@ -275,3 +275,4 @@ CREATE TABLE audit_logs (
 
 CREATE INDEX idx_audit_logs_org_date ON audit_logs(organization_id, created_at DESC);
 ```
+

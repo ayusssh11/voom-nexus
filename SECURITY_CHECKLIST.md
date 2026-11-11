@@ -132,3 +132,4 @@ This checklist tracks security controls, engineering standards, and defensive gu
 - [x] **SDLC-01**: Require comprehensive documentation and Architecture Decision Records (ADR) prior to feature implementation. *(Status: Implemented)*
 - [x] **SDLC-02**: Enforce peer code review for all code changes via pull requests. *(Status: Documented in CONTRIBUTING.md)*
 - [x] **SDLC-03**: Establish a formal Responsible Vulnerability Disclosure policy and dedicated security contact. *(Status: Implemented in SECURITY.md)*
+

@@ -19,3 +19,4 @@ test('LanguageAdapterRegistry resolves .env to generic adapter', () => {
   assert.strictEqual(genericAdapter.name, 'generic');
   assert.strictEqual(genericAdapter.supportsAST, false);
 });
+

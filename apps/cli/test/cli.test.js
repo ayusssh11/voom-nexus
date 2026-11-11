@@ -16,3 +16,4 @@ test('runCli help returns exit code 0', async () => {
   const code = await runCli(['help']);
   assert.strictEqual(code, 0);
 });
+

@@ -63,3 +63,4 @@ export const INITIAL_RULES: SecurityRule[] = [
 for (const rule of INITIAL_RULES) {
   defaultRuleRegistry.register(rule);
 }
+

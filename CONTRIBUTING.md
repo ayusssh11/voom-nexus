@@ -128,3 +128,4 @@ When authoring or modifying security detection rules:
 - Assign an accurate, conservative confidence score (`CERTAIN`, `FIRM`, `TENTATIVE`).
 - Provide actionable, safe remediation snippets. Never recommend insecure workarounds (e.g., disabling SSL verification or turning off CSRF tokens).
 - Ensure regular expressions are reviewed for Regular Expression Denial of Service (ReDoS) vulnerabilities.
+

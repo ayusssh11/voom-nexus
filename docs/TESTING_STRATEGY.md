@@ -66,3 +66,4 @@ Quality and correctness are critical for security tooling. A flawed rule engine 
   - Throughput: >= 200 files/sec.
   - Memory: RSS <= 256 MB.
   - Timeout: Individual file parsing timeout capped at 500ms to guarantee no process hangs on large generated files.
+

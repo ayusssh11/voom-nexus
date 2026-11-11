@@ -33,3 +33,4 @@ export function redactSecrets(content: string): string {
 
   return redacted;
 }
+

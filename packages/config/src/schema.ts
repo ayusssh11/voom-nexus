@@ -48,3 +48,4 @@ export const DEFAULT_CONFIG: VoomConfig = {
     showRemediation: true
   }
 };
+

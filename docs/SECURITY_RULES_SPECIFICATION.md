@@ -142,3 +142,4 @@ Every rule PR must include two mandatory test fixture files under `packages/rule
 
 1. `positive.<ext>`: Must contain code snippets that **MUST trigger** the rule with expected line numbers.
 2. `negative.<ext>`: Must contain equivalent safe implementations that **MUST NOT trigger** the rule, confirming false-positive resistance.
+

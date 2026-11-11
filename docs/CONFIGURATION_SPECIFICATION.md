@@ -99,3 +99,4 @@ Voom Nexus operates with security-first defaults:
 - **`redactSecrets` is always TRUE**: Passwords and keys are redacted by default; this cannot be disabled via CLI flags.
 - **`threshold` defaults to `HIGH`**: In CI pipelines, any newly introduced `CRITICAL` or `HIGH` issues will exit with code `1`, preventing vulnerable merges.
 - **Read-Only by default**: The CLI never modifies files unless `--fix` is passed with explicit interactive confirmation.
+

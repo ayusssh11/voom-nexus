@@ -143,3 +143,4 @@ The `vibesec init` command reads centralized rule definitions from `@voom-nexus/
 - Antigravity: `.agent/security-rules.md`
 
 ### Status: ACCEPTED
+

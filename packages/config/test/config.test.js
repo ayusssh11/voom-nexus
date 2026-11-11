@@ -17,3 +17,4 @@ test('mergeWithDefaults merges partial user configuration correctly', () => {
   assert.strictEqual(merged.scan.threshold, 'CRITICAL');
   assert.strictEqual(merged.reporting.format, 'text');
 });
+

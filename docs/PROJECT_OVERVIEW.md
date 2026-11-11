@@ -104,3 +104,4 @@ Voom Nexus transforms application security from an obstructive compliance checkp
 - Dynamic Application Security Testing (DAST) or active network penetration fuzzing.
 - Interactive runtime exploitation or automated exploit payload generation.
 - Proprietary closed-source enterprise software lock-in.
+

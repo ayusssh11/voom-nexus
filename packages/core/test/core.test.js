@@ -15,3 +15,4 @@ test('ScanOrchestrator scans test fixtures and returns metrics', async () => {
   assert.ok(result.metrics);
   assert.strictEqual(typeof result.metrics.durationMs, 'number');
 });
+

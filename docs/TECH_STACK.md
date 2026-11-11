@@ -49,3 +49,4 @@ The reference repository `vibe-security` relied directly on `bun build` and `bun
 - Many enterprise environments, college lab machines, and default developer setups only have Node.js and npm installed.
 - Requiring Bun as a hard dependency introduces unnecessary installation friction.
 - Voom Nexus standardizes on standard Node.js 20 LTS tooling while maintaining code that remains 100% compatible with Bun if developers choose to use it.
+

@@ -99,3 +99,4 @@ flowchart TD
 ## 5. Residual Risks & Ongoing Monitoring
 - **Parser 0-Days in Native Binaries**: If Tree-sitter native C bindings contain memory safety vulnerabilities, a crafted file could crash the scanner. *Mitigation*: Tree-sitter will be evaluated using WASM sandbox in future phases.
 - **False Negatives in Highly Obfuscated Code**: Intentionally obfuscated code (e.g. `window['e'+'val'](...)`) may evade basic heuristics. *Mitigation*: Dynamic taint analysis is scheduled for Phase 8.
+

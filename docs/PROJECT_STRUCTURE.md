@@ -109,3 +109,4 @@ voom-nexus/
   - `src/constants/`: CWE IDs, OWASP 2021 mappings, default exclude patterns.
   - `src/logger.ts`: Structured console and file logger.
   - `src/redact.ts`: High-speed in-memory secret masking utility.
+

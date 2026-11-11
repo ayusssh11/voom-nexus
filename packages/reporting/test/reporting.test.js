@@ -59,3 +59,4 @@ test('TerminalReportFormatter includes severity and rule ID', () => {
   assert.ok(output.includes('VOOM NEXUS'));
   assert.ok(output.includes('[CRITICAL] SQL Injection (SEC-JS-001)'));
 });
+

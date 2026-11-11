@@ -209,3 +209,4 @@ When an error occurs, the server responds with a structured error payload:
   }
 }
 ```
+

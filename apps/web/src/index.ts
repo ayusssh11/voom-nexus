@@ -31,3 +31,4 @@ export class WebPlatformService {
 
 export const webPlatformService = new WebPlatformService();
 logger.info('Initialized Voom Nexus Web Application scaffold');
+

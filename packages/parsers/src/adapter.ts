@@ -69,3 +69,4 @@ export class LanguageAdapterRegistry {
 export const defaultAdapterRegistry = new LanguageAdapterRegistry();
 defaultAdapterRegistry.register(new GenericLanguageAdapter());
 defaultAdapterRegistry.register(new JavaScriptAdapter());
+

@@ -54,3 +54,4 @@ export interface SecurityRule {
   languages: string[];
   version: string;
 }
+

@@ -117,3 +117,4 @@ Voom Nexus encompasses:
 ### 4.3 Reliability & Maintainability (`REQ-REL`)
 - **REQ-REL-001**: 100% of core scan engine and rule functions SHALL have deterministic unit tests.
 - **REQ-REL-002**: System crashes or parsing errors in a single source file SHALL NOT abort the entire scan run; errors SHALL be logged as scan warnings, allowing remaining files to complete.
+
