@@ -25,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **Functional CLI Application (Phase 3)**:
+  - Subcommands implemented:
+    - `vibesec scan [path]`: Supports `--format <text|json|sarif|markdown>`, `--severity <list>`, `--output <file>`, `--threshold <level>`, `--baseline <file>`.
+    - `vibesec verify [path]`: Compares scan against a saved baseline (`.voomsec/baseline.json`), reporting `NEW`, `PERSISTENT`, and `RESOLVED` vulnerabilities.
+    - `vibesec init`: Generates `.voomsecrc.json` configuration and exports tailored AI coding assistant security guidelines (`.cursorrules`, `CLAUDE.md`, `.windsurfrules`, `.github/copilot-instructions.md`, `.agent/security-rules.md`).
+    - `vibesec rules`: Displays all 15 registered security rules with CWE and OWASP mappings.
+    - `vibesec version`: Prints CLI version.
+  - Added `MarkdownReportFormatter` in `@voom-nexus/reporting` for GitHub-flavored markdown PR summaries.
+  - Test suite expanded to 44 automated tests.
 - **Initial Security Rules & Static Analysis (Phase 2)**:
   - Implemented 15 executable security detection rules covering OWASP Top 10 (2021) and CWE taxonomy:
     - `SEC-JS-001`: SQL Injection via dynamic string concatenation (CWE-89, OWASP A03)
