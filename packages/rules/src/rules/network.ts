@@ -56,3 +56,4 @@ export const corsWildcardRule: ExecutableSecurityRule = {
     return findings;
   }
 };
+

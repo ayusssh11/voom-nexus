@@ -28,3 +28,4 @@ export const pathTraversalRule: ExecutableSecurityRule = {
     return findings;
   }
 };
+

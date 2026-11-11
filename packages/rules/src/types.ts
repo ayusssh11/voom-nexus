@@ -19,3 +19,4 @@ export interface ExecutableSecurityRule extends SecurityRule {
   remediation: string;
   evaluate(context: RuleContext): RuleFinding[];
 }
+

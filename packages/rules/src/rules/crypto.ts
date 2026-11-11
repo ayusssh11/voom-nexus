@@ -57,3 +57,4 @@ export const insecureRandomnessRule: ExecutableSecurityRule = {
     return findings;
   }
 };
+

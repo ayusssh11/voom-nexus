@@ -64,3 +64,4 @@ export const privateKeyRule: ExecutableSecurityRule = {
     return findings;
   }
 };
+

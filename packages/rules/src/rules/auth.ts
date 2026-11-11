@@ -112,3 +112,4 @@ export const prototypePollutionRule: ExecutableSecurityRule = {
     return findings;
   }
 };
+
