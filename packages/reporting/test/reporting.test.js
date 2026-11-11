@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { JsonReportFormatter, SarifReportFormatter, TerminalReportFormatter } from '../dist/index.js';
+import {
+  JsonReportFormatter,
+  SarifReportFormatter,
+  TerminalReportFormatter,
+  MarkdownReportFormatter
+} from '../dist/index.js';
 
 const mockScanResult = {
   scanId: 'test-scan-123',
@@ -60,3 +65,10 @@ test('TerminalReportFormatter includes severity and rule ID', () => {
   assert.ok(output.includes('[CRITICAL] SQL Injection (SEC-JS-001)'));
 });
 
+test('MarkdownReportFormatter outputs GFM table and code block', () => {
+  const formatter = new MarkdownReportFormatter();
+  const output = formatter.format(mockScanResult);
+  assert.ok(output.includes('# Voom Nexus Security Scan Report'));
+  assert.ok(output.includes('| **CRITICAL** | `SEC-JS-001` |'));
+  assert.ok(output.includes('```javascript'));
+});

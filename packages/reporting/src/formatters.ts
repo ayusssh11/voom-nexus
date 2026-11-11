@@ -114,3 +114,44 @@ export class TerminalReportFormatter implements ReportFormatter {
   }
 }
 
+export class MarkdownReportFormatter implements ReportFormatter {
+  format(result: ScanResult): string {
+    const lines: string[] = [];
+    lines.push('# Voom Nexus Security Scan Report\n');
+    lines.push(`- **Target Path**: \`${result.targetPath}\``);
+    lines.push(`- **Scan Timestamp**: ${result.timestamp}`);
+    lines.push(`- **Files Scanned**: ${result.metrics.scannedFiles} / ${result.metrics.totalFiles}`);
+    lines.push(`- **Duration**: ${result.metrics.durationMs}ms`);
+    lines.push(`- **Total Vulnerabilities**: **${result.metrics.totalIssues}** (Critical: ${result.metrics.criticalCount}, High: ${result.metrics.highCount}, Medium: ${result.metrics.mediumCount}, Low: ${result.metrics.lowCount})\n`);
+
+    if (result.issues.length === 0) {
+      lines.push('> :white_check_mark: **No security vulnerabilities found!** Clean scan.\n');
+      return lines.join('\n');
+    }
+
+    lines.push('## Vulnerabilities Summary\n');
+    lines.push('| Severity | Rule ID | Title | File & Line | Standards |');
+    lines.push('| :--- | :--- | :--- | :--- | :--- |');
+
+    for (const issue of result.issues) {
+      lines.push(
+        `| **${issue.severity}** | \`${issue.ruleId}\` | ${issue.title} | \`${issue.file}:${issue.line}\` | ${issue.cwe} / ${issue.owasp} |`
+      );
+    }
+
+    lines.push('\n## Detailed Findings & Remediations\n');
+
+    for (const issue of result.issues) {
+      lines.push(`### [${issue.severity}] ${issue.title} (\`${issue.ruleId}\`)`);
+      lines.push(`- **Location**: \`${issue.file}:${issue.line}\``);
+      lines.push(`- **Classification**: ${issue.cwe} | ${issue.owasp}`);
+      lines.push(`- **Snippet**:`);
+      lines.push('```javascript');
+      lines.push(issue.snippet);
+      lines.push('```');
+      lines.push(`- **Remediation**: ${issue.remediation}\n`);
+    }
+
+    return lines.join('\n');
+  }
+}
