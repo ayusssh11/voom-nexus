@@ -104,3 +104,4 @@ echo -e "To start web dashboard:    ${YELLOW}npm run start:web${NC}"
 echo -e "Academic Capstone Report:  ${GREEN}docs/CAPSTONE_PROJECT_REPORT.md${NC}"
 echo -e "Viva Defense Guide:        ${GREEN}docs/VIVA_PRESENTATION_GUIDE.md${NC}"
 echo "================================================================================"
+
