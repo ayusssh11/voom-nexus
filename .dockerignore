@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.local
+dist
+build
+coverage
+.voomsec
+test_cli_output
+test_init_env
+test_nextjs_env
+*.log
+.DS_Store
