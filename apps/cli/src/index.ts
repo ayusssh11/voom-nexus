@@ -85,6 +85,9 @@ export async function runCli(args: string[] = process.argv.slice(2)): Promise<nu
         } else if (args[i] === '--ai' && args[i + 1]) {
           options.ai = args[i + 1].split(',').map((s) => s.trim());
           i++;
+        } else if (args[i] === '--framework' && args[i + 1]) {
+          options.framework = args[i + 1].toLowerCase() as any;
+          i++;
         } else if (args[i] === '--force') {
           options.force = true;
         }
@@ -126,6 +129,7 @@ Options for "verify":
 
 Options for "init":
   --ai <assistants>  Comma-separated list (e.g. cursor,claude,copilot,all)
+  --framework <name> Target framework: nextjs, react, express, fastapi, generic
   --force            Overwrite existing configuration and rules
 `);
       return 0;

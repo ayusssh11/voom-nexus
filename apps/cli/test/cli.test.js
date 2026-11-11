@@ -42,9 +42,29 @@ test('runCli init generates configuration and AI rules', async () => {
   const configFile = await readFile(join(targetInitDir, '.voomsecrc.json'), 'utf-8');
   assert.ok(configFile.includes('voom-nexus.local'));
   const cursorRules = await readFile(join(targetInitDir, '.cursorrules'), 'utf-8');
-  assert.ok(cursorRules.includes('Voom Nexus — Security Rules for Cursor AI'));
+  assert.ok(cursorRules.includes('Voom Nexus — Security Directives for Cursor AI'));
   const claudeMd = await readFile(join(targetInitDir, 'CLAUDE.md'), 'utf-8');
   assert.ok(claudeMd.includes('Security Guidelines for Claude Code'));
+  await rm(targetInitDir, { recursive: true, force: true });
+});
+
+test('runCli init --framework nextjs generates framework-tailored guardrails', async () => {
+  const targetInitDir = join(currentDir, 'test_nextjs_env');
+  const code = await runCli(['init', targetInitDir, '--framework', 'nextjs', '--ai', 'all', '--force']);
+  assert.strictEqual(code, 0);
+
+  const configFile = await readFile(join(targetInitDir, '.voomsecrc.json'), 'utf-8');
+  assert.ok(configFile.includes('"framework": "nextjs"'));
+
+  const cursorRules = await readFile(join(targetInitDir, '.cursorrules'), 'utf-8');
+  assert.ok(cursorRules.includes('Next.js (App Router & Server Components) Security Guardrails'));
+
+  const copilotRules = await readFile(join(targetInitDir, '.github/copilot-instructions.md'), 'utf-8');
+  assert.ok(copilotRules.includes('GitHub Copilot Security Directives'));
+
+  const agentRules = await readFile(join(targetInitDir, '.agent/security-rules.md'), 'utf-8');
+  assert.ok(agentRules.includes('Google Antigravity AI Security Rules'));
+
   await rm(targetInitDir, { recursive: true, force: true });
 });
 

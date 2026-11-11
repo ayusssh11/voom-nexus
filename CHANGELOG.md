@@ -25,6 +25,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0-alpha.0] - 2026-11-11
 
 ### Added
+- **AI Coding Assistant Security Guidelines (Phase 7)**:
+  - Framework-specific security rule packs and generators (`AiGuidelineGenerator` in `@voom-nexus/rules`) targeting:
+    - **Next.js**: Server Component secret isolation, Server Action authorization checks, Zod validation in Route Handlers, and `dangerouslySetInnerHTML` DOMPurify guardrails.
+    - **React**: DOM XSS prevention, protocol validation on `<a href>`, and token storage hygiene.
+    - **Express**: Mandatory `helmet()`, strict CORS whitelists, rate limiting on authentication routes, and sanitized 500 error handlers.
+    - **FastAPI / Python**: SQLAlchemy parameterization, `pydantic` request parsing, safe deserialization (avoiding `pickle`/raw YAML), and cryptographically secure tokens.
+    - **Generic**: Universal negative constraints and secure implementation patterns.
+  - Automatic framework detection from `package.json` dependencies.
+  - Multi-assistant exporters targeting:
+    - Cursor AI (`.cursorrules`)
+    - Claude Code (`CLAUDE.md`)
+    - Windsurf Cascade (`.windsurfrules`)
+    - GitHub Copilot (`.github/copilot-instructions.md`)
+    - Google Antigravity / Gemini (`.agent/security-rules.md`)
+  - CLI enhancement: `vibesec init --framework <name> --ai <assistants>`.
+  - Web REST API endpoint: `GET /api/v1/ai/guidelines?framework=...&ai=...` for dynamic guideline retrieval.
+  - Unit and integration tests expanded to 67 passing tests.
 - **Vulnerability Reporting & Remediation Workflows (Phase 6)**:
   - Automated safe remediation engine (`AutoFixer` in `@voom-nexus/core`) providing recipes for high-confidence rules:
     - `SEC-JS-004`: Automatic cryptographic upgrade from MD5/SHA1 to SHA-256.

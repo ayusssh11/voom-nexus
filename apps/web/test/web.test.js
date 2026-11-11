@@ -221,3 +221,23 @@ test('GET /api/v1/findings and /api/v1/audit-logs support filtering and complian
   const logs = auditRes.json().data.logs;
   assert.ok(logs.some((l) => l.action === 'FINDING_STATUS_UPDATED' && l.entityId === 'find_sqli_100'));
 });
+
+test('GET /api/v1/ai/guidelines serves tailored assistant directives', async () => {
+  const server = new VoomWebServer(new MemoryDataStore());
+
+  // Request Cursor rules for Next.js
+  const nextRes = await server.inject('GET', '/api/v1/ai/guidelines?framework=nextjs&ai=cursor');
+  assert.strictEqual(nextRes.statusCode, 200);
+  const nextData = nextRes.json().data;
+  assert.strictEqual(nextData.framework, 'nextjs');
+  assert.strictEqual(nextData.assistant, 'cursor');
+  assert.ok(nextData.content.includes('Next.js (App Router & Server Components) Security Guardrails'));
+
+  // Request Claude guidelines for Express
+  const expressRes = await server.inject('GET', '/api/v1/ai/guidelines?framework=express&ai=claude');
+  assert.strictEqual(expressRes.statusCode, 200);
+  const expressData = expressRes.json().data;
+  assert.strictEqual(expressData.framework, 'express');
+  assert.strictEqual(expressData.assistant, 'claude');
+  assert.ok(expressData.content.includes('Express.js & Node.js REST API Security Guardrails'));
+});

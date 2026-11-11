@@ -1,5 +1,6 @@
 export * from './types.js';
 export * from './registry.js';
+export * from './ai-guidelines.js';
 export * from './rules/injection.js';
 export * from './rules/crypto.js';
 export * from './rules/filesystem.js';

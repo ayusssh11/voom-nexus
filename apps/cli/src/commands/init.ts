@@ -1,10 +1,11 @@
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, readFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { logger } from '@voom-nexus/shared';
-import { defaultRuleRegistry } from '@voom-nexus/rules';
+import { AiGuidelineGenerator, FrameworkType } from '@voom-nexus/rules';
 
 export interface InitOptions {
   ai?: string[];
+  framework?: FrameworkType;
   force?: boolean;
 }
 
@@ -12,12 +13,28 @@ export async function runInit(options: InitOptions = {}, targetDir = process.cwd
   console.log('Initializing Voom Nexus in project...\n');
   await mkdir(targetDir, { recursive: true });
 
-  // 1. Generate default .voomsecrc.json if not present
+  // 1. Detect or use specified framework
+  let framework: FrameworkType = options.framework || 'generic';
+  if (!options.framework) {
+    try {
+      const pkgPath = join(targetDir, 'package.json');
+      const pkgContent = await readFile(pkgPath, 'utf-8');
+      framework = AiGuidelineGenerator.detectFramework(pkgContent);
+      console.log(`Detected project framework: ${framework.toUpperCase()}`);
+    } catch {
+      framework = 'generic';
+    }
+  } else {
+    console.log(`Selected project framework: ${framework.toUpperCase()}`);
+  }
+
+  // 2. Generate default .voomsecrc.json if not present
   const configPath = join(targetDir, '.voomsecrc.json');
   const defaultConfigContent = JSON.stringify(
     {
       "$schema": "https://voom-nexus.local/schemas/config.v1.json",
       "version": "1.0",
+      "framework": framework,
       "scan": {
         "paths": ["."],
         "exclude": [
@@ -53,73 +70,29 @@ export async function runInit(options: InitOptions = {}, targetDir = process.cwd
     }
   }
 
-  // 2. Generate AI Coding Assistant Guidelines
+  // 3. Generate AI Coding Assistant Guidelines using AiGuidelineGenerator
   const selectedAi = options.ai && options.ai.length > 0 ? options.ai : ['all'];
-  const rules = defaultRuleRegistry.getAll();
-  const ruleSummary = rules.map((r) => `- **${r.title}** (${r.id}): ${r.remediation}`).join('\n');
 
   const aiGenerators: Record<string, { path: string; getContent: () => string }> = {
     cursor: {
       path: join(targetDir, '.cursorrules'),
-      getContent: () => `# Voom Nexus — Security Rules for Cursor AI
-You are developing code adhering to strict OWASP Top 10 and CWE application security standards.
-NEVER generate insecure code patterns. Follow these strict security directives:
-
-${ruleSummary}
-
-## Negative Constraints (Strictly Prohibited):
-1. Never use dynamic string concatenation or template literals for SQL queries (CWE-89). Always use parameterization.
-2. Never pass unsanitized input to child_process exec/execSync (CWE-78). Always use execFile.
-3. Never use eval(), new Function(), or setTimeout with string arguments (CWE-95).
-4. Never generate hardcoded API keys, tokens, or mock passwords in source files (CWE-798).
-5. Never use MD5 or SHA-1 for cryptographic integrity or password hashing (CWE-327). Use Argon2id or SHA-256.
-6. Never write raw passwords, API keys, or tokens to application logs (CWE-532).
-7. Never use Math.random() for security tokens or session IDs (CWE-338). Use crypto.randomBytes().
-`
+      getContent: () => AiGuidelineGenerator.generateCursorRules(framework)
     },
     claude: {
       path: join(targetDir, 'CLAUDE.md'),
-      getContent: () => `# Security Guidelines for Claude Code (Voom Nexus)
-
-## Security Standards (OWASP Top 10 & CWE)
-When generating or modifying code in this repository, you must guarantee that no security vulnerabilities are introduced.
-
-### Mandatory Security Directives:
-${ruleSummary}
-
-### Zero-Tolerance Rules:
-- No raw SQL concatenation.
-- No child_process.exec() with concatenated strings.
-- No hardcoded secrets or access keys.
-- No obsolete cryptographic functions (MD5, SHA1).
-- No unvalidated file path concatenation (prevent Path Traversal CWE-22).
-`
+      getContent: () => AiGuidelineGenerator.generateClaudeMd(framework)
     },
     windsurf: {
       path: join(targetDir, '.windsurfrules'),
-      getContent: () => `# Voom Nexus Security Directives for Windsurf Cascade
-Enforce secure coding standards for all code generation:
-
-${ruleSummary}
-
-Always use parameterized queries, safe file path resolution, and secure cryptographic libraries.
-`
+      getContent: () => AiGuidelineGenerator.generateWindsurfRules(framework)
     },
     copilot: {
       path: join(targetDir, '.github/copilot-instructions.md'),
-      getContent: () => `# GitHub Copilot Security Instructions (Voom Nexus)
-These instructions guide GitHub Copilot to generate secure code adhering to OWASP Top 10 guidelines.
-
-${ruleSummary}
-`
+      getContent: () => AiGuidelineGenerator.generateCopilotInstructions(framework)
     },
     antigravity: {
       path: join(targetDir, '.agent/security-rules.md'),
-      getContent: () => `# Google Antigravity AI Security Rules
-Guidelines generated by Voom Nexus:
-
-${ruleSummary}
-`
+      getContent: () => AiGuidelineGenerator.generateAntigravityRules(framework)
     }
   };
 

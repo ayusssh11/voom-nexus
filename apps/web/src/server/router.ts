@@ -5,6 +5,7 @@ import { MemoryDataStore } from '../store/data-store.js';
 import { ScanJobQueue } from '../services/queue.js';
 import { renderDashboardHtml } from '../ui/dashboard.js';
 import { SarifReportFormatter, JsonReportFormatter } from '@voom-nexus/reporting';
+import { AiGuidelineGenerator, FrameworkType } from '@voom-nexus/rules';
 
 export interface RouteContext {
   req: IncomingMessage;
@@ -365,6 +366,41 @@ export async function handleRequest(
       data: {
         logs,
         total: logs.length
+      }
+    });
+  }
+
+  // 13. AI Coding Guidelines Generator: GET /api/v1/ai/guidelines
+  if (method === 'GET' && pathname === '/api/v1/ai/guidelines') {
+    const framework = (url.searchParams.get('framework') || 'generic') as FrameworkType;
+    const ai = (url.searchParams.get('ai') || 'cursor').toLowerCase();
+
+    let content = '';
+    switch (ai) {
+      case 'claude':
+        content = AiGuidelineGenerator.generateClaudeMd(framework);
+        break;
+      case 'windsurf':
+        content = AiGuidelineGenerator.generateWindsurfRules(framework);
+        break;
+      case 'copilot':
+        content = AiGuidelineGenerator.generateCopilotInstructions(framework);
+        break;
+      case 'antigravity':
+        content = AiGuidelineGenerator.generateAntigravityRules(framework);
+        break;
+      case 'cursor':
+      default:
+        content = AiGuidelineGenerator.generateCursorRules(framework);
+        break;
+    }
+
+    return sendJson(res, 200, {
+      success: true,
+      data: {
+        framework,
+        assistant: ai,
+        content
       }
     });
   }
