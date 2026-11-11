@@ -126,81 +126,51 @@ export class ScanOrchestrator {
     const issues: SecurityIssue[] = [];
     const relativePath = entryRelative(rootPath, filePath);
 
-    // Evaluate rules on lines
-    for (let i = 0; i < parseResult.lines.length; i++) {
-      const lineText = parseResult.lines[i];
-      const lineNum = i + 1;
+    // Get all applicable rules for this language
+    const applicableRules = defaultRuleRegistry.getFiltered({
+      severity: this.config.scan.severity,
+      disabledRules: this.config.rules.disable,
+      languages: [adapter.name]
+    });
 
-      // Check for inline suppression: e.g. // voomsec-ignore-next-line
-      if (i > 0 && parseResult.lines[i - 1].includes('voomsec-ignore-next-line')) {
-        continue;
-      }
+    const context = {
+      filePath,
+      lines: parseResult.lines,
+      content: parseResult.rawContent,
+      language: adapter.name
+    };
 
-      // Detection 1: SQL Injection
-      if (/SELECT\s+.*\s+FROM\s+.*WHERE\s+.*['"`]\s*\+\s*|`SELECT\s+.*WHERE\s+.*\$\{/i.test(lineText)) {
+    // Execute each rule
+    for (const rule of applicableRules) {
+      const findings = rule.evaluate(context);
+
+      for (const finding of findings) {
+        const lineIdx = finding.line - 1;
+
+        // Check for inline suppression: e.g. // voomsec-ignore-next-line <RULE-ID>
+        if (lineIdx > 0) {
+          const prevLine = parseResult.lines[lineIdx - 1];
+          if (
+            prevLine.includes('voomsec-ignore-next-line') &&
+            (prevLine.includes(rule.id) || !prevLine.includes('SEC-'))
+          ) {
+            continue;
+          }
+        }
+
         issues.push({
           id: randomUUID(),
-          ruleId: 'SEC-JS-001',
-          title: 'SQL Injection via String Concatenation',
-          severity: 'CRITICAL',
-          confidence: 'CERTAIN',
-          cwe: 'CWE-89',
-          owasp: 'A03:2021-Injection',
+          ruleId: rule.id,
+          title: rule.title,
+          severity: rule.severity,
+          confidence: finding.confidence || rule.confidence,
+          cwe: rule.cwe,
+          owasp: rule.owasp,
           file: relativePath,
-          line: lineNum,
-          snippet: redactSecrets(lineText.trim()),
-          remediation: 'Use parameterized queries or prepared statements.'
-        });
-      }
-
-      // Detection 2: Hardcoded Secrets
-      if (/["'](?:api[_-]?key|secret|password)["']\s*[:=]\s*["'][^"']{8,}["']/i.test(lineText)) {
-        issues.push({
-          id: randomUUID(),
-          ruleId: 'SEC-GEN-001',
-          title: 'Hardcoded Secret or API Key Exposure',
-          severity: 'CRITICAL',
-          confidence: 'CERTAIN',
-          cwe: 'CWE-798',
-          owasp: 'A07:2021-Identification and Authentication Failures',
-          file: relativePath,
-          line: lineNum,
-          snippet: redactSecrets(lineText.trim()),
-          remediation: 'Extract credentials into environment variables.'
-        });
-      }
-
-      // Detection 3: Command Injection via child_process
-      if (/\b(?:exec|execSync)\s*\(\s*`[^`]*\$\{/i.test(lineText)) {
-        issues.push({
-          id: randomUUID(),
-          ruleId: 'SEC-JS-003',
-          title: 'Command Injection via Child Process Execution',
-          severity: 'CRITICAL',
-          confidence: 'CERTAIN',
-          cwe: 'CWE-78',
-          owasp: 'A03:2021-Injection',
-          file: relativePath,
-          line: lineNum,
-          snippet: redactSecrets(lineText.trim()),
-          remediation: 'Use execFile() with discrete argument arrays instead of shell concatenation.'
-        });
-      }
-
-      // Detection 4: Weak Cryptography (MD5/SHA1)
-      if (/createHash\s*\(\s*["'](?:md5|sha1)["']\s*\)/i.test(lineText)) {
-        issues.push({
-          id: randomUUID(),
-          ruleId: 'SEC-JS-004',
-          title: 'Weak Cryptographic Hash Function (MD5/SHA1)',
-          severity: 'HIGH',
-          confidence: 'CERTAIN',
-          cwe: 'CWE-327',
-          owasp: 'A02:2021-Cryptographic Failures',
-          file: relativePath,
-          line: lineNum,
-          snippet: redactSecrets(lineText.trim()),
-          remediation: 'Replace MD5/SHA-1 with SHA-256 or Argon2id for password hashing.'
+          line: finding.line,
+          column: finding.column,
+          snippet: redactSecrets(finding.snippet),
+          remediation: finding.remediation || rule.remediation
         });
       }
     }
