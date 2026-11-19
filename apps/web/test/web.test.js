@@ -241,3 +241,28 @@ test('GET /api/v1/ai/guidelines serves tailored assistant directives', async () 
   assert.strictEqual(expressData.assistant, 'claude');
   assert.ok(expressData.content.includes('Express.js & Node.js REST API Security Guardrails'));
 });
+
+test('POST /api/v1/scan performs live scan on target path and records project', async () => {
+  const store = new MemoryDataStore();
+  const server = new VoomWebServer(store);
+
+  // Scan samples/vulnerable-app
+  const res = await server.inject('POST', '/api/v1/scan', {
+    targetPath: 'samples/vulnerable-app',
+    projectName: 'Test Vulnerable App'
+  });
+
+  assert.strictEqual(res.statusCode, 200);
+  const data = res.json().data;
+  assert.ok(data.scanId);
+  assert.strictEqual(data.project.name, 'Test Vulnerable App');
+  assert.ok(data.scanResult.metrics.totalIssues > 0);
+  assert.strictEqual(data.scanResult.metrics.criticalCount, 3);
+  assert.ok(data.metrics.totalProjects >= 2);
+
+  // Verify non-existent path returns 404
+  const invalidRes = await server.inject('POST', '/api/v1/scan', {
+    targetPath: 'some/nonexistent/directory/path/12345'
+  });
+  assert.strictEqual(invalidRes.statusCode, 404);
+});

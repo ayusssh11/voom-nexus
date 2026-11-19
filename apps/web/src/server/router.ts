@@ -1,6 +1,9 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { URL } from 'node:url';
 import { randomUUID } from 'node:crypto';
+import { resolve, isAbsolute, basename } from 'node:path';
+import { stat } from 'node:fs/promises';
+import { ScanOrchestrator } from '@voom-nexus/core';
 import { MemoryDataStore } from '../store/data-store.js';
 import { ScanJobQueue } from '../services/queue.js';
 import { renderDashboardHtml } from '../ui/dashboard.js';
@@ -125,6 +128,78 @@ export async function handleRequest(
       success: true,
       data: project
     });
+  }
+
+  // 4b. Interactive Path Scan: POST /api/v1/scan
+  if (method === 'POST' && pathname === '/api/v1/scan') {
+    const rawPath = body?.targetPath?.trim();
+    if (!rawPath) {
+      return sendJson(res, 400, {
+        success: false,
+        data: null,
+        error: { code: 'VALIDATION_FAILED', message: 'targetPath is required' }
+      });
+    }
+
+    const resolvedPath = isAbsolute(rawPath) ? rawPath : resolve(process.cwd(), rawPath);
+
+    try {
+      await stat(resolvedPath);
+    } catch {
+      return sendJson(res, 404, {
+        success: false,
+        data: null,
+        error: { code: 'PATH_NOT_FOUND', message: `Target path does not exist: ${rawPath}` }
+      });
+    }
+
+    try {
+      const orchestrator = new ScanOrchestrator();
+      const scanResult = await orchestrator.scanPath(resolvedPath);
+
+      const projectName = body.projectName?.trim() || basename(resolvedPath) || 'Scanned Target';
+      let project = store.listProjects().find(
+        (p) => p.name.toLowerCase() === projectName.toLowerCase() || p.repositoryUrl === resolvedPath
+      );
+      if (!project) {
+        project = store.createProject(projectName, resolvedPath, 'main');
+      }
+
+      const storedScan = store.recordScan(project.id, scanResult, 'WEB_INTERACTIVE');
+
+      const allProjects = store.listProjects();
+      const totalIssues = allProjects.reduce(
+        (acc, p) => acc + p.openIssuesCount.critical + p.openIssuesCount.high + p.openIssuesCount.medium + p.openIssuesCount.low,
+        0
+      );
+      const totalCritHigh = allProjects.reduce(
+        (acc, p) => acc + p.openIssuesCount.critical + p.openIssuesCount.high,
+        0
+      );
+      const avgHealthScore = Math.round(allProjects.reduce((acc, p) => acc + p.healthScore, 0) / allProjects.length);
+
+      return sendJson(res, 200, {
+        success: true,
+        data: {
+          scanId: storedScan.id,
+          project,
+          scanResult,
+          metrics: {
+            ...scanResult.metrics,
+            totalProjects: allProjects.length,
+            totalIssues,
+            totalCritHigh,
+            avgHealthScore
+          }
+        }
+      });
+    } catch (err: any) {
+      return sendJson(res, 500, {
+        success: false,
+        data: null,
+        error: { code: 'SCAN_FAILED', message: err?.message || 'Error occurred during scan execution' }
+      });
+    }
   }
 
   // 5. Asynchronous Scan Queueing: POST /api/v1/projects/:projectId/queue-scan
