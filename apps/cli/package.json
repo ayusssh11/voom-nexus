@@ -1,7 +1,7 @@
 {
   "name": "@voom-nexus/cli",
   "version": "0.1.0-alpha.0",
-  "description": "Developer CLI for Voom Nexus — Vibe Security Tool",
+  "description": "Developer CLI for Voom Nexus — AI-Aware Application Security Platform (Vibe Security Tool)",
   "type": "module",
   "bin": {
     "vibesec": "./dist/index.js",
@@ -9,12 +9,40 @@
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist/**",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "preferGlobal": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ayushchauhan/voom-nexus.git",
+    "directory": "apps/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/ayushchauhan/voom-nexus/issues"
+  },
+  "homepage": "https://github.com/ayushchauhan/voom-nexus#readme",
+  "keywords": [
+    "security",
+    "sast",
+    "cli",
+    "vibe-coding",
+    "ai-security",
+    "owasp",
+    "cwe",
+    "devsecops",
+    "supply-chain"
+  ],
   "dependencies": {
-    "@voom-nexus/config": "*",
-    "@voom-nexus/core": "*",
-    "@voom-nexus/reporting": "*",
-    "@voom-nexus/rules": "*",
-    "@voom-nexus/shared": "*"
+    "@voom-nexus/config": "^0.1.0-alpha.0",
+    "@voom-nexus/core": "^0.1.0-alpha.0",
+    "@voom-nexus/reporting": "^0.1.0-alpha.0",
+    "@voom-nexus/rules": "^0.1.0-alpha.0",
+    "@voom-nexus/shared": "^0.1.0-alpha.0"
   },
   "scripts": {
     "build": "tsc -b",
@@ -24,4 +52,3 @@
   },
   "license": "SEE LICENSE IN ../../LICENSE"
 }
-

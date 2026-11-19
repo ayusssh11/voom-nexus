@@ -11,12 +11,18 @@
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist/**"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@voom-nexus/config": "*",
-    "@voom-nexus/parsers": "*",
-    "@voom-nexus/reporting": "*",
-    "@voom-nexus/rules": "*",
-    "@voom-nexus/shared": "*"
+    "@voom-nexus/config": "^0.1.0-alpha.0",
+    "@voom-nexus/parsers": "^0.1.0-alpha.0",
+    "@voom-nexus/reporting": "^0.1.0-alpha.0",
+    "@voom-nexus/rules": "^0.1.0-alpha.0",
+    "@voom-nexus/shared": "^0.1.0-alpha.0"
   },
   "scripts": {
     "build": "tsc -b",
@@ -26,4 +32,3 @@
   },
   "license": "SEE LICENSE IN ../../LICENSE"
 }
-
